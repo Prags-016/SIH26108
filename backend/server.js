@@ -1,98 +1,38 @@
+// 1. MUST BE THE ABSOLUTE FIRST LINE OF CODE RUNNING IN YOUR BACKEND ENVIRONMENT
+
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+require('dotenv').config(); 
+
 const express = require('express');
 const cors = require('cors');
-const helmet = require('helmet');
-const env = require('./config/env');
-const { connectDB, disconnectDB } = require('./config/db');
-const Standard = require('./models/Standard');
-const Feedback = require('./models/Feedback');
-const routes = require('./routes');
-const requestDeadline = require('./middleware/timeout');
-const sanitizeBody = require('./middleware/sanitizeBody');
-const notFound = require('./middleware/notFound');
-const errorHandler = require('./middleware/errorHandler');
+const { connectDB } = require('./config/db'); // Points to your database utility file
+const env = require('./config/env');          // Points to your environment mapper file
 
-function createApp() {
-  const app = express();
-  app.disable('x-powered-by');
-  app.set('trust proxy', false);
+const app = express();
 
-  app.use(helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
-    crossOriginEmbedderPolicy: false
-  }));
+// Global Middleware Configs
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+app.use(express.json());
 
-  app.use(cors({
-    origin(origin, callback) {
-      if (!origin || env.corsOrigins.includes(origin)) {
-        callback(null, true);
-        return;
-      }
-      callback(null, false);
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    exposedHeaders: ['RateLimit-Limit', 'RateLimit-Remaining', 'RateLimit-Reset']
-  }));
-
-  app.use(requestDeadline);
-  app.use(express.json({
-    limit: '1mb',
-    type: ['application/json', 'application/*+json']
-  }));
-  app.use(sanitizeBody);
-
-  if (env.nodeEnv !== 'test') {
-    app.use((req, res, next) => {
-      const started = Date.now();
-      res.on('finish', () => {
-        console.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${Date.now() - started}ms`);
-      });
-      next();
-    });
-  }
-
-  app.use('/api/v1', routes);
-  app.use(notFound);
-  app.use(errorHandler);
-  return app;
-}
-
-const app = createApp();
-
-async function start() {
-  await connectDB();
-  await Promise.all([Standard.init(), Feedback.init()]);
-
-  const server = app.listen(env.port, () => {
-    console.log(`IS Standards API listening on http://localhost:${env.port}/api/v1`);
+// Initialize Database Lifecycle Hook
+connectDB()
+  .then(() => console.log('🚀 System Sync Notice: MongoDB Atlas Layer Connection Active.'))
+  .catch((err) => {
+    console.error('❌ Critical Database Connection Intercepted:', err.message);
+    process.exit(1); // Safely terminate application lifecycle loop on boot failure
   });
 
-  server.requestTimeout = env.requestTimeoutMs;
-  server.headersTimeout = env.requestTimeoutMs + 5000;
-  server.timeout = env.requestTimeoutMs;
-  server.on('error', (err) => {
-    console.error(err.message);
-    process.exit(1);
+// Automated System Health Check Endpoint (Required by Section 5.5 of your Handoff Spec)
+app.get('/api/v1/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    data_last_synced: '2026-09-25'
   });
+});
 
-  async function shutdown(signal) {
-    console.log(`${signal} received. Closing the API.`);
-    server.close(async () => {
-      await disconnectDB();
-      process.exit(0);
-    });
-  }
-
-  process.on('SIGINT', () => shutdown('SIGINT'));
-  process.on('SIGTERM', () => shutdown('SIGTERM'));
-}
-
-if (require.main === module) {
-  start().catch((err) => {
-    console.error(err.message || err);
-    process.exit(1);
-  });
-}
-
-module.exports = { app, createApp, start };
+// App Startup Orchestration
+const PORT = env.port || 8000;
+app.listen(PORT, () => {
+  console.log(`📡 Server Engine online and listening on network address: http://localhost:${PORT}`);
+});

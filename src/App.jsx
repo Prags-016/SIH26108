@@ -6,6 +6,7 @@ import { Nav } from './components/Nav.jsx';
 import { Breadcrumb } from './components/Breadcrumb.jsx';
 import { Footer } from './components/Footer.jsx';
 import { getTranslation } from './i18n/index.js';
+import { UpdateTicker } from './components/UpdateTicker.jsx';
 
 // Pages
 import { Home } from './pages/Home.jsx';
@@ -63,6 +64,9 @@ export default function App() {
 
       {/* 3. Navigation Bar */}
       <Nav t={t} />
+
+      {/* Gazette Updates Ticker */}
+      <UpdateTicker t={t} />
 
       {/* 4. Breadcrumb */}
       <Breadcrumb t={t} />

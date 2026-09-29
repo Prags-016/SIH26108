@@ -83,6 +83,17 @@ export function FindStandards({ t }) {
     setUploadedFile(file);
   };
 
+  // Helper to load sample tender file directly for testing
+  const handleLoadSampleFile = () => {
+    const sampleContent = `GOVERNMENT OF INDIA - MINISTRY OF HOUSING AND URBAN AFFAIRS
+CPWD TENDER NOTICE NO. CPWD/2026/CIVIL-04
+Supply of Ordinary Portland Cement 43 Grade conforming to technical standard specifications for construction of multi-storey government residential quarters. The cement bags must conform to BIS standards and bear valid ISI certification mark.`;
+    const blob = new Blob([sampleContent], { type: 'text/plain' });
+    const file = new File([blob], 'sample_tender_specification.txt', { type: 'text/plain' });
+    setUploadedFile(file);
+    setErrorMessage(null);
+  };
+
   const handleSubmitDescribe = async (e) => {
     e.preventDefault();
     setErrorMessage(null);
@@ -108,7 +119,6 @@ export function FindStandards({ t }) {
         includeCert
       });
       setLoading(false);
-      // Navigate to Results page passing recommendation data
       navigate('/results', { state: { result, originalQuery: query } });
     } catch (err) {
       setLoading(false);
@@ -144,8 +154,8 @@ export function FindStandards({ t }) {
   };
 
   const tabsConfig = [
-    { id: 'describe', label: t.tabDescribe },
-    { id: 'upload', label: t.tabUpload }
+    { id: 'describe', label: t.tabDescribe || "Describe Product" },
+    { id: 'upload', label: t.tabUpload || "Upload Tender Document" }
   ];
 
   return (
@@ -168,9 +178,22 @@ export function FindStandards({ t }) {
       {!loading && activeTab === 'describe' && (
         <form onSubmit={handleSubmitDescribe} className="panel-white" noValidate>
           <div className="form-group">
-            <label htmlFor="product-query" className="form-label">
-              {t.inputLabel} <span className="required">*</span>
-            </label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label htmlFor="product-query" className="form-label" style={{ marginBottom: 0 }}>
+                {t.inputLabel} <span className="required">*</span>
+              </label>
+              {query && (
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="btn btn-sm btn-secondary"
+                  style={{ fontSize: '0.75rem', padding: '2px 6px' }}
+                >
+                  Clear Text
+                </button>
+              )}
+            </div>
+
             <textarea
               id="product-query"
               className="form-control"
@@ -180,88 +203,103 @@ export function FindStandards({ t }) {
               placeholder={t.inputPlaceholder}
               aria-describedby="char-counter query-hint"
               required
+              style={{ marginTop: '6px' }}
             />
-            <div
-              id="char-counter"
-              className={`char-counter ${charCount > 5000 ? 'limit-exceeded' : ''}`}
-            >
-              Characters: {charCount} / 5000 ({t.charCountMinMax})
-            </div>
-            <div id="query-hint" className="form-hint">
-              Mention product functionality, engineering materials, grades, or intended environmental operating conditions.
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+              <div id="query-hint" className="form-hint">
+                Tip: Mention generic material, intended application, or design grade (avoid proprietary brand names).
+              </div>
+              <div
+                id="char-counter"
+                className={`char-counter ${charCount > 5000 ? 'limit-exceeded' : ''}`}
+                style={{
+                  color: charCount >= 10 && charCount <= 5000 ? 'var(--color-status-current)' : (charCount > 5000 ? 'var(--color-status-withdrawn)' : '#666'),
+                  fontWeight: 600
+                }}
+              >
+                {charCount} / 5000 characters {charCount >= 10 && charCount <= 5000 ? '✓ (Valid)' : '(Min 10)'}
+              </div>
             </div>
           </div>
 
-          {/* Clickable Example Queries (plain text links, including one in Hindi) */}
-          <div className="form-group example-queries">
-            <strong>{t.exampleQueriesLabel}</strong>
-            <ul className="example-list">
+          {/* Quick Clickable Example Queries */}
+          <div className="form-group" style={{ backgroundColor: '#F8F9FA', border: '1px solid #E0E0E0', padding: '10px 12px' }}>
+            <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-navy)', marginBottom: '4px' }}>
+              {t.exampleQueriesLabel}
+            </div>
+            <div className="example-chips">
               {EXAMPLE_QUERIES.map((ex) => (
-                <li key={ex.id}>
-                  <button
-                    type="button"
-                    className="example-link"
-                    onClick={() => handleExampleClick(ex)}
-                  >
-                    &bull; {ex.label}
-                  </button>
-                </li>
+                <button
+                  key={ex.id}
+                  type="button"
+                  className="example-chip-btn"
+                  onClick={() => handleExampleClick(ex)}
+                  title="Click to populate specification query"
+                >
+                  ▶ {ex.label}
+                </button>
               ))}
-            </ul>
-          </div>
-
-          {/* Language Selection */}
-          <div className="form-group" style={{ maxWidth: '320px' }}>
-            <label htmlFor="input-language" className="form-label">
-              {t.languageLabel}
-            </label>
-            <select
-              id="input-language"
-              className="form-control"
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-            >
-              <option value="auto">{t.autoDetect}</option>
-              {SUPPORTED_LANGUAGES.map((lang) => (
-                <option key={lang.code} value={lang.code}>
-                  {lang.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Checkboxes: Allied standards & Certification */}
-          <div className="form-group">
-            <div>
-              <label className="checkbox-label" htmlFor="chk-allied">
-                <input
-                  type="checkbox"
-                  id="chk-allied"
-                  checked={includeAllied}
-                  onChange={(e) => setIncludeAllied(e.target.checked)}
-                />
-                <span>{t.optAllied}</span>
-              </label>
             </div>
+          </div>
+
+          {/* Configuration Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', margin: '16px 0' }}>
+            {/* Language Selection */}
             <div>
-              <label className="checkbox-label" htmlFor="chk-cert">
-                <input
-                  type="checkbox"
-                  id="chk-cert"
-                  checked={includeCert}
-                  onChange={(e) => setIncludeCert(e.target.checked)}
-                />
-                <span>{t.optCert}</span>
+              <label htmlFor="input-language" className="form-label">
+                {t.languageLabel}
               </label>
+              <select
+                id="input-language"
+                className="form-control"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+              >
+                <option value="auto">{t.autoDetect}</option>
+                {SUPPORTED_LANGUAGES.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Checkboxes: Allied standards & Certification */}
+            <div>
+              <label className="form-label">Recommendation Scope:</label>
+              <div>
+                <label className="checkbox-label" htmlFor="chk-allied">
+                  <input
+                    type="checkbox"
+                    id="chk-allied"
+                    checked={includeAllied}
+                    onChange={(e) => setIncludeAllied(e.target.checked)}
+                  />
+                  <span>{t.optAllied}</span>
+                </label>
+              </div>
+              <div>
+                <label className="checkbox-label" htmlFor="chk-cert">
+                  <input
+                    type="checkbox"
+                    id="chk-cert"
+                    checked={includeCert}
+                    onChange={(e) => setIncludeCert(e.target.checked)}
+                  />
+                  <span>{t.optCert}</span>
+                </label>
+              </div>
             </div>
           </div>
 
           {/* Buttons: Submit & Reset */}
-          <div className="button-group" style={{ marginTop: '20px' }}>
+          <div className="button-group" style={{ marginTop: '20px', borderTop: '1px solid #EEEEEE', paddingTop: '16px' }}>
             <button
               type="submit"
               className="btn btn-primary"
               disabled={charCount < 10 || charCount > 5000}
+              style={{ minWidth: '160px' }}
             >
               {t.btnSubmit}
             </button>
@@ -283,73 +321,105 @@ export function FindStandards({ t }) {
             <label htmlFor="tender-file-upload" className="form-label">
               {t.uploadLabel} <span className="required">*</span>
             </label>
-            <input
-              type="file"
-              id="tender-file-upload"
-              className="form-control"
-              accept=".pdf,.docx,.txt"
-              onChange={handleFileChange}
-              aria-describedby="upload-help"
-            />
-            <div id="upload-help" className="form-hint">
-              Supported file formats: Portable Document Format (.pdf), Microsoft Word (.docx), Plain Text (.txt). Maximum file size limit: 10 MB.
+
+            <div className="dropzone-box">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1F3A6E" strokeWidth="1.5" style={{ display: 'block', margin: '0 auto 8px auto' }} aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="12" y1="18" x2="12" y2="12"></line>
+                <line x1="9" y1="15" x2="15" y2="15"></line>
+              </svg>
+              <div style={{ fontWeight: 600, color: '#333', marginBottom: '4px' }}>
+                Select or Browse Tender Document from Your Computer
+              </div>
+              <div style={{ fontSize: '0.8125rem', color: '#666', marginBottom: '12px' }}>
+                Supported formats: <strong>.pdf</strong>, <strong>.docx</strong>, <strong>.txt</strong> (Max file size: 10 MB)
+              </div>
+              <input
+                type="file"
+                id="tender-file-upload"
+                className="form-control"
+                accept=".pdf,.docx,.txt"
+                onChange={handleFileChange}
+                aria-describedby="upload-help"
+                style={{ maxWidth: '400px', margin: '0 auto' }}
+              />
             </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+              <div id="upload-help" className="form-hint">
+                Document contents are parsed safely for technical standards keywords.
+              </div>
+              <button
+                type="button"
+                className="example-link"
+                onClick={handleLoadSampleFile}
+                style={{ fontSize: '0.8125rem' }}
+              >
+                📎 Load Sample Tender Document (.txt)
+              </button>
+            </div>
+
             {uploadedFile && (
-              <div style={{ marginTop: '8px', fontSize: '0.875rem', color: '#1E6B2E' }}>
-                Selected file: <strong>{uploadedFile.name}</strong> ({(uploadedFile.size / 1024).toFixed(1)} KB)
+              <div className="success-box" style={{ marginTop: '12px', padding: '8px 12px' }}>
+                Selected file: <strong>{uploadedFile.name}</strong> ({(uploadedFile.size / 1024).toFixed(1)} KB) &mdash; Ready for analysis.
               </div>
             )}
           </div>
 
-          <div className="form-group" style={{ maxWidth: '320px' }}>
-            <label htmlFor="upload-language" className="form-label">
-              {t.languageLabel}
-            </label>
-            <select
-              id="upload-language"
-              className="form-control"
-              value={uploadLanguage}
-              onChange={(e) => setUploadLanguage(e.target.value)}
-            >
-              <option value="auto">{t.autoDetect}</option>
-              {SUPPORTED_LANGUAGES.map((lang) => (
-                <option key={lang.code} value={lang.code}>
-                  {lang.name}
-                </option>
-              ))}
-            </select>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', margin: '16px 0' }}>
+            <div style={{ maxWidth: '320px' }}>
+              <label htmlFor="upload-language" className="form-label">
+                {t.languageLabel}
+              </label>
+              <select
+                id="upload-language"
+                className="form-control"
+                value={uploadLanguage}
+                onChange={(e) => setUploadLanguage(e.target.value)}
+              >
+                <option value="auto">{t.autoDetect}</option>
+                {SUPPORTED_LANGUAGES.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="form-label">Recommendation Scope:</label>
+              <div>
+                <label className="checkbox-label" htmlFor="chk-upload-allied">
+                  <input
+                    type="checkbox"
+                    id="chk-upload-allied"
+                    checked={uploadAllied}
+                    onChange={(e) => setUploadAllied(e.target.checked)}
+                  />
+                  <span>{t.optAllied}</span>
+                </label>
+              </div>
+              <div>
+                <label className="checkbox-label" htmlFor="chk-upload-cert">
+                  <input
+                    type="checkbox"
+                    id="chk-upload-cert"
+                    checked={uploadCert}
+                    onChange={(e) => setUploadCert(e.target.checked)}
+                  />
+                  <span>{t.optCert}</span>
+                </label>
+              </div>
+            </div>
           </div>
 
-          <div className="form-group">
-            <div>
-              <label className="checkbox-label" htmlFor="chk-upload-allied">
-                <input
-                  type="checkbox"
-                  id="chk-upload-allied"
-                  checked={uploadAllied}
-                  onChange={(e) => setUploadAllied(e.target.checked)}
-                />
-                <span>{t.optAllied}</span>
-              </label>
-            </div>
-            <div>
-              <label className="checkbox-label" htmlFor="chk-upload-cert">
-                <input
-                  type="checkbox"
-                  id="chk-upload-cert"
-                  checked={uploadCert}
-                  onChange={(e) => setUploadCert(e.target.checked)}
-                />
-                <span>{t.optCert}</span>
-              </label>
-            </div>
-          </div>
-
-          <div className="button-group" style={{ marginTop: '20px' }}>
+          <div className="button-group" style={{ marginTop: '20px', borderTop: '1px solid #EEEEEE', paddingTop: '16px' }}>
             <button
               type="submit"
               className="btn btn-primary"
               disabled={!uploadedFile}
+              style={{ minWidth: '160px' }}
             >
               {t.btnSubmit}
             </button>

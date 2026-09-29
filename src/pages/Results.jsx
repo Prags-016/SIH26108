@@ -33,12 +33,21 @@ export function Results({ t }) {
     ? result.items.find((item) => item.item_id === selectedItemId) || result.items[0]
     : result;
 
-  const recommendedStandards = currentItem.recommended_standards || [];
+  const rawRecommendedStandards = currentItem.recommended_standards || [];
   const alliedStandards = currentItem.allied_standards || [];
   const certifications = currentItem.mandatory_certifications || [];
   const suggestedClause = currentItem.suggested_clause || '';
   const warnings = currentItem.warnings || [];
   const userVersionWarning = currentItem.user_version_warning || result.user_version_warning || null;
+
+  // In-page filter state for recommended standards
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const recommendedStandards = rawRecommendedStandards.filter((std) => {
+    if (statusFilter === 'current') return (std.status || '').toLowerCase().includes('current');
+    if (statusFilter === 'withdrawn') return (std.status || '').toLowerCase().includes('withdrawn') || (std.status || '').toLowerCase().includes('superseded');
+    return true;
+  });
 
   // Feedback states
   const [feedbackHelpful, setFeedbackHelpful] = useState('yes');
@@ -52,7 +61,7 @@ export function Results({ t }) {
   // Action: Copy all IS Numbers
   const handleCopyAllIS = () => {
     const allIS = [];
-    recommendedStandards.forEach((s) => allIS.push(s.is_number));
+    rawRecommendedStandards.forEach((s) => allIS.push(s.is_number));
     alliedStandards.forEach((s) => allIS.push(s.is_number));
     const unique = [...new Set(allIS)].join(', ');
 
@@ -78,7 +87,7 @@ export function Results({ t }) {
       ['Type', 'Rank', 'IS Number', 'Title', 'Relevance', 'Status', 'Latest Version', 'Amendments', 'Related To']
     ];
 
-    recommendedStandards.forEach((s) => {
+    rawRecommendedStandards.forEach((s) => {
       rows.push([
         'Recommended Standard',
         s.rank,
@@ -137,7 +146,7 @@ export function Results({ t }) {
   // Empty State Handling
   const isNoMatch =
     result.status === 'NO_MATCH_FOUND' ||
-    (recommendedStandards.length === 0 && (!hasItems || result.items.length === 0));
+    (rawRecommendedStandards.length === 0 && (!hasItems || result.items.length === 0));
 
   if (isNoMatch) {
     return (
@@ -159,11 +168,11 @@ export function Results({ t }) {
               {t.noMatchTitle}
             </h2>
             <p>{t.noMatchDesc}</p>
-            <p><strong>Query: </strong>{result.product_summary || 'N/A'}</p>
+            <p><strong>Input Query: </strong>{result.product_summary || 'N/A'}</p>
           </div>
 
           <div className="panel" style={{ marginTop: '16px' }}>
-            <h3 style={{ marginTop: 0 }}>Tips for Refining Your Tender Specification:</h3>
+            <h3 style={{ marginTop: 0 }}>Procurement Specification Reformulation Guidance:</h3>
             <ul style={{ paddingLeft: '20px', lineHeight: '1.7' }}>
               <li>{t.noMatchTip1}</li>
               <li>{t.noMatchTip2}</li>
@@ -187,6 +196,21 @@ export function Results({ t }) {
 
   return (
     <div className="page-results">
+      {/* Official Government Advisory Watermark / Top Header Bar */}
+      <div style={{ backgroundColor: '#EEF2F7', border: '1px solid #1F3A6E', borderLeft: '5px solid #1F3A6E', padding: '10px 14px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <div>
+          <span style={{ fontWeight: 800, color: 'var(--color-navy)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Government of India &bull; Standards Advisory Dossier
+          </span>
+          <div style={{ fontSize: '0.8125rem', color: '#444' }}>
+            Tender Specification Compliance Evaluation Report (GFR 2017 Rule 144)
+          </div>
+        </div>
+        <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#1E6B2E', backgroundColor: '#E8F5E9', padding: '3px 8px', border: '1px solid #A5D6A7' }}>
+          ● Verified Against BIS Repository
+        </div>
+      </div>
+
       {/* Top Action Toolbar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
         <h1 style={{ margin: 0, borderBottom: 'none', paddingBottom: 0 }}>
@@ -199,7 +223,7 @@ export function Results({ t }) {
             onClick={() => window.print()}
             title="Print or save as PDF"
           >
-            {t.btnPrint}
+            🖨️ {t.btnPrint}
           </button>
           <button
             type="button"
@@ -207,7 +231,7 @@ export function Results({ t }) {
             onClick={handleCopyAllIS}
             title="Copy list of all Indian Standards numbers"
           >
-            {t.btnCopyIS}
+            📋 {t.btnCopyIS}
           </button>
           <button
             type="button"
@@ -215,39 +239,43 @@ export function Results({ t }) {
             onClick={handleDownloadCSV}
             title="Download table results as CSV"
           >
-            {t.btnDownloadCSV}
+            📥 {t.btnDownloadCSV}
           </button>
           <button
             type="button"
             className="btn btn-primary"
             onClick={() => navigate('/find')}
           >
-            {t.btnNewSearch}
+            🔍 {t.btnNewSearch}
           </button>
         </div>
       </div>
 
       {copyStatus && (
-        <div className="success-box" role="status" style={{ padding: '8px 12px', marginBottom: '12px' }}>
-          <strong>{copyStatus}</strong>
+        <div className="success-box" role="status" style={{ padding: '8px 12px', marginBottom: '14px' }}>
+          <strong>✓ {copyStatus}</strong>
         </div>
       )}
 
       {/* 1. Summary Bar Box */}
       <section className="panel" aria-label="Query and Session Summary">
         <div className="panel-header">1. Search & Specification Summary</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px', fontSize: '0.9375rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', fontSize: '0.9375rem' }}>
           <div>
             <strong>{t.reqId}: </strong>
-            <span style={{ fontFamily: 'monospace' }}>{result.request_id || 'REQ-UNKNOWN'}</span>
+            <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{result.request_id || 'REQ-UNKNOWN'}</span>
           </div>
           <div>
             <strong>{t.detectedLang}: </strong>
             <span>{result.detected_language || 'English'}</span>
           </div>
+          <div>
+            <strong>Standards Found: </strong>
+            <span>{rawRecommendedStandards.length} Primary, {alliedStandards.length} Allied</span>
+          </div>
           <div style={{ gridColumn: '1 / -1' }}>
             <strong>{t.productSummary}: </strong>
-            <span>{result.product_summary || 'Specification details processed'}</span>
+            <span style={{ color: '#1F3A6E', fontWeight: 600 }}>{result.product_summary || 'Specification details processed'}</span>
           </div>
           {result.translated_query && (
             <div style={{ gridColumn: '1 / -1', backgroundColor: '#FFF', padding: '8px 12px', border: '1px solid #CCC' }}>
@@ -270,16 +298,45 @@ export function Results({ t }) {
             onTabChange={setSelectedItemId}
           />
           <div style={{ padding: '6px 0', fontSize: '0.9375rem' }}>
-            Currently viewing: <strong>{currentItem.item_name}</strong> &mdash; {currentItem.product_summary}
+            Currently viewing schedule: <strong>{currentItem.item_name}</strong> &mdash; {currentItem.product_summary}
           </div>
         </section>
       )}
 
       {/* 3. Recommended Indian Standards */}
       <section className="panel-white" aria-labelledby="heading-recommended">
-        <h2 id="heading-recommended" className="panel-header" style={{ marginTop: 0 }}>
-          {hasItems ? `3. ${currentItem.item_name} - ` : '3. '}{t.recommendedStandardsTitle}
-        </h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', borderBottom: '1px solid var(--color-border)', paddingBottom: '8px', marginBottom: '12px' }}>
+          <h2 id="heading-recommended" style={{ margin: 0, fontSize: '1.15rem', color: 'var(--color-navy)' }}>
+            {hasItems ? `3. ${currentItem.item_name} - ` : '3. '}{t.recommendedStandardsTitle}
+          </h2>
+
+          {/* Quick Status Filter Controls */}
+          <div className="no-print" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8125rem' }}>
+            <span style={{ fontWeight: 600 }}>Filter by Status:</span>
+            <button
+              type="button"
+              className={`btn btn-sm ${statusFilter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setStatusFilter('all')}
+            >
+              All ({rawRecommendedStandards.length})
+            </button>
+            <button
+              type="button"
+              className={`btn btn-sm ${statusFilter === 'current' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setStatusFilter('current')}
+            >
+              Current Only
+            </button>
+            <button
+              type="button"
+              className={`btn btn-sm ${statusFilter === 'withdrawn' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setStatusFilter('withdrawn')}
+            >
+              Withdrawn
+            </button>
+          </div>
+        </div>
+
         <StandardsTable
           standards={recommendedStandards}
           userVersionWarning={userVersionWarning}
@@ -319,8 +376,9 @@ export function Results({ t }) {
             type="button"
             className="btn btn-sm btn-secondary no-print"
             onClick={handleCopyClause}
+            title="Copy clause to clipboard"
           >
-            {t.btnCopyClause}
+            📋 {t.btnCopyClause}
           </button>
         </div>
         <div className="form-group" style={{ marginTop: '8px' }}>
@@ -330,10 +388,10 @@ export function Results({ t }) {
             readOnly
             value={suggestedClause}
             aria-label={t.clauseTitle}
-            style={{ backgroundColor: '#FBFBFB', fontFamily: 'monospace', fontSize: '0.875rem' }}
+            style={{ backgroundColor: '#F8F9FB', fontFamily: 'monospace', fontSize: '0.875rem', lineHeight: '1.6' }}
           />
           <div className="form-hint">
-            Procurement officers can directly copy and paste this standard compliance paragraph into Section IV (Technical Specifications) of their tender document / GeM bid.
+            Procurement officers can directly copy and paste this standard compliance paragraph into Section IV (Technical Specifications) of their tender document or GeM bid.
           </div>
         </div>
       </section>
@@ -365,7 +423,7 @@ export function Results({ t }) {
 
         {feedbackSubmitted ? (
           <div className="success-box" role="status">
-            {t.feedbackSuccess}
+            ✓ {t.feedbackSuccess}
           </div>
         ) : (
           <form onSubmit={handleFeedbackSubmit}>

@@ -1,7 +1,9 @@
 /* ==========================================================================
    IS STANDARDS RECOMMENDATION ENGINE - GLOBAL STYLESHEET
    Conforming strictly to GIGW (Guidelines for Indian Government Websites)
-   Aesthetic: Plain, formal, dense, trustworthy. No gradients, no shadows, no animations.
+   Aesthetic: Plain, formal, dense, trustworthy.
+   Colours: White bg, Navy blue (#1F3A6E), Light grey (#F2F2F2), 1px solid grey (#CCCCCC) borders,
+            Dark red (#B00020), Dark green (#1E6B2E), Amber (#9A5B00).
    ========================================================================== */
 
 :root {
@@ -9,22 +11,23 @@
   --font-size-base: 16px;
   --line-height-base: 1.5;
 
-  /* Government Portal Palette */
+  /* Official Government Portal Palette */
   --color-bg: #FFFFFF;
   --color-text: #222222;
   --color-navy: #1F3A6E;
+  --color-navy-dark: #14274E;
   --color-navy-hover: #152A50;
-  --color-panel-bg: #F2F2F2;
-  --color-panel-light: #F9F9F9;
+  --color-panel-bg: #F4F5F7;
+  --color-panel-light: #FAFAFA;
   --color-border: #CCCCCC;
-  --color-border-dark: #999999;
+  --color-border-dark: #888888;
   --color-link: #0B4C8C;
   --color-link-visited: #551A8B;
   
-  /* Status Colours (WCAG AA Compliant) */
+  /* Status Colours (WCAG 2.1 AA Compliant) */
   --color-status-current: #1E6B2E;       /* Dark Green */
   --color-status-withdrawn: #B00020;     /* Dark Red */
-  --color-status-revision: #9A5B00;      /* Amber / Brownish Dark Yellow */
+  --color-status-revision: #9A5B00;      /* Amber */
   
   /* Tricolour Strip */
   --color-saffron: #FF9933;
@@ -35,7 +38,7 @@
   --focus-outline: 2px solid #000000;
   --focus-offset: 2px;
 
-  /* Max layout width */
+  /* Layout width */
   --max-width: 1140px;
 }
 
@@ -59,6 +62,7 @@ body.high-contrast {
   --color-bg: #000000;
   --color-text: #FFFF00;
   --color-navy: #000000;
+  --color-navy-dark: #000000;
   --color-navy-hover: #222222;
   --color-panel-bg: #111111;
   --color-panel-light: #1A1A1A;
@@ -77,6 +81,7 @@ body.high-contrast .site-header,
 body.high-contrast .main-nav,
 body.high-contrast .btn-primary,
 body.high-contrast .utility-bar,
+body.high-contrast .update-ticker-bar,
 body.high-contrast footer {
   background-color: #000000 !important;
   color: #FFFF00 !important;
@@ -119,6 +124,17 @@ body.high-contrast .btn-secondary {
   border: 1px solid #FFFF00 !important;
 }
 
+body.high-contrast .notice-box,
+body.high-contrast .warning-box,
+body.high-contrast .error-box,
+body.high-contrast .success-box,
+body.high-contrast .kpi-card,
+body.high-contrast .service-card {
+  background-color: #111111 !important;
+  color: #FFFF00 !important;
+  border-color: #FFFF00 !important;
+}
+
 /* --------------------------------------------------------------------------
    Base & Resets
    -------------------------------------------------------------------------- */
@@ -141,7 +157,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Accessibility Focus */
+/* Focus Indicator for Accessibility */
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
@@ -186,10 +202,22 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 0.5rem;
 }
 
-h1 { font-size: 1.6rem; border-bottom: 2px solid var(--color-navy); padding-bottom: 6px; margin-bottom: 1rem; }
-h2 { font-size: 1.3rem; margin-top: 1rem; }
-h3 { font-size: 1.15rem; }
-h4 { font-size: 1rem; }
+h1 {
+  font-size: 1.55rem;
+  border-bottom: 2px solid var(--color-navy);
+  padding-bottom: 6px;
+  margin-bottom: 1rem;
+}
+h2 {
+  font-size: 1.25rem;
+  margin-top: 1rem;
+}
+h3 {
+  font-size: 1.1rem;
+}
+h4 {
+  font-size: 1rem;
+}
 
 p {
   margin-bottom: 0.75rem;
@@ -248,6 +276,7 @@ a:visited {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 .utility-item {
   display: inline-flex;
@@ -303,7 +332,7 @@ a:visited {
    -------------------------------------------------------------------------- */
 .site-header {
   background-color: #FFFFFF;
-  padding: 12px 0;
+  padding: 12px 0 10px 0;
   border-bottom: 1px solid var(--color-border);
 }
 .site-header .container {
@@ -315,25 +344,30 @@ a:visited {
 .header-brand {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
-.emblem-placeholder {
-  width: 58px;
-  height: 58px;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-panel-bg);
+
+/* Dignified Emblem Placeholder SVG / Box */
+.emblem-placeholder-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 0.625rem;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-panel-light);
+  padding: 4px 6px;
+  min-width: 64px;
+}
+.emblem-placeholder-title {
+  font-size: 0.5625rem;
   font-weight: 700;
-  color: #555555;
-  padding: 4px;
+  color: #333333;
   line-height: 1.1;
   text-transform: uppercase;
+  margin-top: 2px;
 }
+
 .header-titles {
   display: flex;
   flex-direction: column;
@@ -357,12 +391,29 @@ a:visited {
   color: #333333;
   line-height: 1.2;
 }
-.header-meta {
+
+.header-right-badges {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-left: 1px solid var(--color-border);
+  padding-left: 16px;
+}
+.bis-partner-badge {
   text-align: right;
   font-size: 0.75rem;
-  color: #666666;
-  border-left: 1px solid var(--color-border);
-  padding-left: 12px;
+  color: #444444;
+  line-height: 1.3;
+}
+.bis-partner-badge strong {
+  color: var(--color-navy);
+}
+.helpline-box {
+  background-color: #F8F9FA;
+  border: 1px solid var(--color-border);
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  text-align: right;
 }
 
 /* --------------------------------------------------------------------------
@@ -370,7 +421,7 @@ a:visited {
    -------------------------------------------------------------------------- */
 .main-nav {
   background-color: var(--color-navy);
-  border-bottom: 1px solid #0E234B;
+  border-bottom: 2px solid var(--color-saffron);
 }
 .main-nav ul {
   list-style: none;
@@ -386,19 +437,67 @@ a:visited {
   display: block;
   color: #FFFFFF;
   text-decoration: none;
-  padding: 10px 14px;
+  padding: 9px 14px;
   font-size: 0.9375rem;
   font-weight: 600;
   border-right: 1px solid #2F4D85;
 }
-.main-nav a:hover,
-.main-nav a.active {
+.main-nav a:hover {
   background-color: #12254B;
   color: #FFFFFF;
   text-decoration: underline;
 }
+.main-nav a.active {
+  background-color: #0E1C38;
+  color: #FFFFFF;
+  border-top: 3px solid var(--color-saffron);
+  margin-top: -3px;
+  text-decoration: underline;
+}
 .main-nav li:first-child a {
   border-left: 1px solid #2F4D85;
+}
+
+/* --------------------------------------------------------------------------
+   Latest Updates Marquee Bar
+   -------------------------------------------------------------------------- */
+.update-ticker-bar {
+  background-color: #FFFDE7;
+  border-bottom: 1px solid #FFE082;
+  font-size: 0.8125rem;
+  padding: 6px 0;
+  color: #4E342E;
+}
+.update-ticker-bar .container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ticker-label {
+  background-color: var(--color-navy);
+  color: #FFFFFF;
+  padding: 2px 8px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.ticker-content {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ticker-controls {
+  display: inline-flex;
+  gap: 4px;
+}
+.ticker-btn {
+  background: #FFFFFF;
+  border: 1px solid #CCCCCC;
+  font-size: 0.6875rem;
+  padding: 1px 6px;
+  cursor: pointer;
 }
 
 /* --------------------------------------------------------------------------
@@ -435,8 +534,68 @@ a:visited {
    Main Content Area
    -------------------------------------------------------------------------- */
 main#main-content {
-  padding: 20px 0 35px 0;
+  padding: 18px 0 35px 0;
   min-height: 60vh;
+}
+
+/* --------------------------------------------------------------------------
+   KPI Statistics Strip (Government Metrics)
+   -------------------------------------------------------------------------- */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.kpi-card {
+  background-color: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-navy);
+  padding: 12px 14px;
+  text-align: center;
+}
+.kpi-number {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-navy);
+  line-height: 1.2;
+}
+.kpi-label {
+  font-size: 0.8125rem;
+  color: #555555;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   Quick Services Grid
+   -------------------------------------------------------------------------- */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin: 16px 0 20px 0;
+}
+.service-card {
+  background-color: #FFFFFF;
+  border: 1px solid var(--color-border);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.service-card h3 {
+  font-size: 1rem;
+  margin-top: 0;
+  color: var(--color-navy);
+  border-bottom: 1px solid #E0E0E0;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+.service-card p {
+  font-size: 0.875rem;
+  color: #444444;
+  flex: 1;
 }
 
 /* --------------------------------------------------------------------------
@@ -500,7 +659,7 @@ main#main-content {
 }
 
 /* --------------------------------------------------------------------------
-   Buttons
+   Buttons (Rectangular, 2px radius max, solid navy or white/navy)
    -------------------------------------------------------------------------- */
 .btn {
   display: inline-block;
@@ -556,7 +715,7 @@ main#main-content {
 }
 
 /* --------------------------------------------------------------------------
-   Forms & Controls
+   Forms & Document Drop Area
    -------------------------------------------------------------------------- */
 .form-group {
   margin-bottom: 14px;
@@ -614,6 +773,43 @@ textarea.form-control {
   font-weight: 700;
 }
 
+/* Government Document Upload Dropzone */
+.dropzone-box {
+  border: 2px dashed #999999;
+  background-color: #F8F9FA;
+  padding: 24px 16px;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+.dropzone-box:hover {
+  background-color: #EEF2F7;
+  border-color: var(--color-navy);
+}
+
+/* Example Query Quick Buttons */
+.example-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.example-chip-btn {
+  background-color: #FFFFFF;
+  border: 1px solid var(--color-border);
+  color: var(--color-link);
+  font-size: 0.8125rem;
+  padding: 4px 8px;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 2px;
+  font-family: inherit;
+}
+.example-chip-btn:hover {
+  background-color: #EBF3FA;
+  border-color: var(--color-link);
+}
+
 /* --------------------------------------------------------------------------
    Tabs
    -------------------------------------------------------------------------- */
@@ -638,6 +834,7 @@ textarea.form-control {
 .tab-button.active {
   background-color: #FFFFFF;
   border-bottom: 1px solid #FFFFFF;
+  border-top: 3px solid var(--color-navy);
   color: #000000;
   font-weight: 700;
 }
@@ -702,7 +899,7 @@ textarea.form-control {
   text-align: left;
 }
 
-/* Status Indicator (Text + Color, WCAG Compliant) */
+/* Status Indicator Badges (Text + Color, WCAG Compliant) */
 .status-badge {
   font-weight: 700;
   display: inline-block;
@@ -719,6 +916,23 @@ textarea.form-control {
 }
 .status-badge.under_revision {
   color: var(--color-status-revision);
+}
+
+/* Relevance Percentage Meter */
+.relevance-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.relevance-meter {
+  flex: 1;
+  height: 6px;
+  background-color: #E0E0E0;
+  min-width: 50px;
+}
+.relevance-fill {
+  height: 100%;
+  background-color: var(--color-navy);
 }
 
 /* --------------------------------------------------------------------------
@@ -751,45 +965,11 @@ textarea.form-control {
 }
 
 /* --------------------------------------------------------------------------
-   Example Queries
-   -------------------------------------------------------------------------- */
-.example-queries {
-  margin-top: 8px;
-  font-size: 0.8125rem;
-  color: #555555;
-}
-.example-queries strong {
-  color: #333333;
-}
-.example-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 4px;
-  list-style: none;
-  padding-left: 0;
-}
-.example-link {
-  color: var(--color-link);
-  background: none;
-  border: none;
-  padding: 0;
-  font-size: 0.8125rem;
-  font-family: inherit;
-  text-decoration: underline;
-  cursor: pointer;
-  text-align: left;
-}
-.example-link:hover {
-  text-decoration: none;
-}
-
-/* --------------------------------------------------------------------------
-   Footer
+   Footer & Portal Logos
    -------------------------------------------------------------------------- */
 footer.site-footer {
   background-color: var(--color-panel-bg);
-  border-top: 2px solid var(--color-navy);
+  border-top: 3px solid var(--color-navy);
   padding: 24px 0 16px 0;
   font-size: 0.8125rem;
   color: #444444;
@@ -797,7 +977,7 @@ footer.site-footer {
 .footer-links-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px 24px;
+  gap: 14px 20px;
   margin-bottom: 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--color-border);
@@ -810,6 +990,29 @@ footer.site-footer {
 .footer-links-grid a:hover {
   text-decoration: underline;
 }
+
+.footer-portal-partners {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0 16px 0;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 14px;
+}
+.partner-logo-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid #CCCCCC;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #333333;
+}
+
 .footer-meta-row {
   display: flex;
   justify-content: space-between;
@@ -817,6 +1020,21 @@ footer.site-footer {
   gap: 12px;
   margin-bottom: 12px;
 }
+.visitor-counter-box {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: 6px;
+}
+.visitor-digit {
+  background-color: #222222;
+  color: #00FF00;
+  font-family: monospace;
+  font-weight: bold;
+  padding: 1px 4px;
+  border: 1px solid #000;
+  font-size: 0.8125rem;
+}
+
 .footer-disclaimer {
   background-color: #FFFFFF;
   border: 1px solid var(--color-border);
@@ -837,12 +1055,14 @@ footer.site-footer {
   }
   .tricolour-strip,
   .utility-bar,
+  .update-ticker-bar,
   .main-nav,
   .breadcrumb-bar,
   .no-print,
   button,
-  .example-queries,
-  .site-footer .footer-links-grid {
+  .example-chips,
+  .site-footer .footer-links-grid,
+  .footer-portal-partners {
     display: none !important;
   }
   .container {
@@ -880,10 +1100,11 @@ footer.site-footer {
     flex-direction: column;
     align-items: flex-start;
   }
-  .header-meta {
+  .header-right-badges {
     border-left: none;
     padding-left: 0;
-    text-align: left;
+    width: 100%;
+    justify-content: space-between;
   }
   .main-nav a {
     padding: 8px 10px;

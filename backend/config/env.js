@@ -25,11 +25,10 @@ const requestTimeoutMs = intFromEnv('REQUEST_TIMEOUT_MS', 30000);
 if (requestTimeoutMs <= 0 || requestTimeoutMs > 30000) {
   throw new Error('REQUEST_TIMEOUT_MS must be between 1 and 30000');
 }
-
 module.exports = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: intFromEnv('PORT', 8000),
-  mongoUri: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/is_standards_engine',
+  MONGODB_URI: process.env.MONGODB_URI || 'mongodb+srv://sahapradeep410_db_user:evy9tvYSsHEevbDg@coding.yybrh0b.mongodb.net/is_standards_engine?appName=coding',
   corsOrigins: configuredOrigins,
   requestTimeoutMs,
   dataLastSynced: process.env.DATA_LAST_SYNCED || '2026-09-25',

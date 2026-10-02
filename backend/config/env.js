@@ -27,9 +27,11 @@ if (requestTimeoutMs <= 0 || requestTimeoutMs > 30000) {
 }
 module.exports = {
   nodeEnv: process.env.NODE_ENV || 'development',
-  PORT: process.env.PORT || 8000,
+  port: Number(process.env.PORT) || 8000,
+  PORT: Number(process.env.PORT) || 8000,
   MONGODB_URI: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/is_standards_engine',
-  requestTimeoutMs: 30000,
+  corsOrigins: configuredOrigins,
+  requestTimeoutMs,
   dataLastSynced: process.env.DATA_LAST_SYNCED || '2026-09-25',
   rateLimitWindowMs: intFromEnv('RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000),
   rateLimitMax: intFromEnv('RATE_LIMIT_MAX', 60),

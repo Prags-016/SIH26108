@@ -1,38 +1,48 @@
-// 1. MUST BE THE ABSOLUTE FIRST LINE OF CODE RUNNING IN YOUR BACKEND ENVIRONMENT
+const env = require('./config/env'); // loads .env first
 
-const dns = require('dns');
-dns.setServers(['8.8.8.8', '8.8.4.4']);
-require('dotenv').config(); 
+// Only needed when the Atlas "mongodb+srv://" lookup fails on your network's DNS.
+if (String(env.MONGODB_URI).startsWith('mongodb+srv://')) {
+  require('dns').setServers(['8.8.8.8', '8.8.4.4']);
+}
 
 const express = require('express');
 const cors = require('cors');
-const { connectDB } = require('./config/db'); // Points to your database utility file
-const env = require('./config/env');          // Points to your environment mapper file
+const helmet = require('helmet');
+const { connectDB } = require('./config/db');
+const routes = require('./routes');
+const requestDeadline = require('./middleware/timeout');
+const notFound = require('./middleware/notFound');
+const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
-// Global Middleware Configs
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
-app.use(express.json());
+app.disable('x-powered-by');
+app.use(helmet());
+app.use(cors({ origin: env.corsOrigins, credentials: true }));
+app.use(requestDeadline);               // 30 s hard budget per request
+app.use(express.json({ limit: '1mb' })); // multipart bodies are handled by multer in the route
 
-// Initialize Database Lifecycle Hook
-connectDB()
-  .then(() => console.log('🚀 System Sync Notice: MongoDB Atlas Layer Connection Active.'))
-  .catch((err) => {
-    console.error('❌ Critical Database Connection Intercepted:', err.message);
-    process.exit(1); // Safely terminate application lifecycle loop on boot failure
+// /api/v1/health, /recommend, /recommend/upload, /standards/:id, /feedback
+app.use('/api/v1', routes);
+
+app.use(notFound);     // unknown URL -> JSON envelope
+app.use(errorHandler); // every error -> { error: { code, message, details } }
+
+// Start listening only after MongoDB is connected.
+async function start() {
+  await connectDB();
+  console.log('MongoDB connected.');
+  return app.listen(env.port, () => {
+    console.log(`API listening on http://localhost:${env.port}/api/v1`);
   });
+}
 
-// Automated System Health Check Endpoint (Required by Section 5.5 of your Handoff Spec)
-app.get('/api/v1/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    data_last_synced: '2026-09-25'
+// `node server.js` starts the server; `require('./server')` (tests) does not.
+if (require.main === module) {
+  start().catch((err) => {
+    console.error('Startup failed:', err.message);
+    process.exit(1);
   });
-});
+}
 
-// App Startup Orchestration
-const PORT = env.port || 8000;
-app.listen(PORT, () => {
-  console.log(`📡 Server Engine online and listening on network address: http://localhost:${PORT}`);
-});
+module.exports = { app, start };

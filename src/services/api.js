@@ -8,6 +8,16 @@ import {
 const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.standards.gov.in/api/v1';
 
+// Backend errors look like { error: { code, message, details } }.
+async function errorMessageFrom(response, fallback) {
+  try {
+    const body = await response.json();
+    return (body && body.error && body.error.message) || (body && body.message) || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 // Helper for simulated network latency
 const delay = (ms = 1000) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -99,7 +109,7 @@ export async function recommendStandards({
     return result;
   }
 
-  // Live Backend Integration
+  // Live backend
   let response;
   if (file) {
     const formData = new FormData();
@@ -107,7 +117,8 @@ export async function recommendStandards({
     formData.append('language', language);
     formData.append('include_allied', includeAllied);
     formData.append('include_cert', includeCert);
-    response = await fetch(`${API_BASE_URL}/recommend`, {
+
+    response = await fetch(`${API_BASE_URL}/recommend/upload`, {
       method: 'POST',
       body: formData
     });
@@ -126,14 +137,9 @@ export async function recommendStandards({
     });
   }
 
+
   if (!response.ok) {
-    let errorData = {};
-    try {
-      errorData = await response.json();
-    } catch {
-      // ignore
-    }
-    throw new Error(errorData.message || `Server responded with error status ${response.status}`);
+    throw new Error(await errorMessageFrom(response, `Server responded with error status ${response.status}`));
   }
 
   const data = await response.json();
@@ -188,7 +194,7 @@ export async function getStandardDetail(id) {
 
   const response = await fetch(`${API_BASE_URL}/standards/${encodeURIComponent(id)}`);
   if (!response.ok) {
-    throw new Error(`Failed to fetch standard details: status ${response.status}`);
+    throw new Error(await errorMessageFrom(response, `Failed to fetch standard details: status ${response.status}`));
   }
   return response.json();
 }
@@ -217,7 +223,7 @@ export async function submitFeedback({ requestId, helpful, comment = '', categor
   });
 
   if (!response.ok) {
-    throw new Error(`Feedback submission failed: ${response.statusText}`);
+    throw new Error(await errorMessageFrom(response, `Feedback submission failed: status ${response.status}`));
   }
   return response.json();
 }

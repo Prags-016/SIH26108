@@ -8,8 +8,9 @@ async function connectDB() {
     return mongoose.connection;
   }
 
-  // CHANGED: Using env.MONGODB_URI instead of env.mongoUri to match your env.js file exactly!
-  console.log("ℹ️ Database Triage: Attempting connection link to target URI ->", env.MONGODB_URI); 
+  // Never print the full URI: Atlas strings contain the database password.
+  const safeUri = String(env.MONGODB_URI).replace(/\/\/([^:@/]+):([^@]+)@/, '//$1:****@');
+  console.log('Connecting to MongoDB ->', safeUri);
 
   await mongoose.connect(env.MONGODB_URI, {
     serverSelectionTimeoutMS: 10000, 
